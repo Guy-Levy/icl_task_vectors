@@ -72,29 +72,27 @@ def _create_device_map(model_path: str) -> dict[str, int]:
         config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
         model = AutoModelForCausalLM.from_config(config, trust_remote_code=True)
 
-    layer_class = get_layers(model)[0].__class__.__name__
-
-    max_memory = get_balanced_memory(model, no_split_module_classes=[layer_class])
-    max_memory[0] = 0
-    base_device_map = infer_auto_device_map(model, max_memory=max_memory, no_split_module_classes=[layer_class])
-
     num_devices = torch.cuda.device_count()
-
     layers_path = get_layers_path(model)
-
-    # device_map_lm_head = {k: v for k, v in base_device_map.items() if "lm_head" in k}
-    # device_map_emb = {k: v for k, v in base_device_map.items() if "emb" in k}
-    device_map_layers = {k: v for k, v in base_device_map.items() if k.startswith(layers_path)}
-    device_map_other = {k: v for k, v in base_device_map.items() if k not in device_map_layers}
-
-    # place the other layers on device 0
-    device_map_other = {k: 0 for k in device_map_other}
-    # split the layers evenly across the other devices (1-num_devices)
-    num_layers = len(device_map_layers)
-    num_layers_per_device = math.ceil(num_layers / (num_devices - 1))
-    device_map_layers = {k: (i // num_layers_per_device + 1) for i, k in enumerate(device_map_layers)}
-
-    device_map = {**device_map_other, **device_map_layers}
+    layers = [name for name, _ in model.named_modules() if name.startswith(layers_path)]
+    num_layers = len(layers)
+    
+    device_map = {}
+    
+    # Distribute embedding and lm_head to the first GPU
+    for name, _ in model.named_modules():
+        if 'embed' in name or 'lm_head' in name:
+            device_map[name] = 0
+    
+    # Distribute layers evenly across all GPUs
+    layers_per_gpu = math.ceil(num_layers / num_devices)
+    for i, layer_name in enumerate(layers):
+        device_map[layer_name] = min(i // layers_per_gpu, num_devices - 1)
+    
+    # Distribute any remaining modules to the last GPU
+    for name, _ in model.named_modules():
+        if name not in device_map:
+            device_map[name] = num_devices - 1
 
     return device_map
 
