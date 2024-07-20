@@ -35,7 +35,7 @@ class MappingTask(Task):
         with open(mapping_file) as f:
             mapping = json.load(f)
 
-        if allow_prefix:
+        if allow_prefix or self.mapping_type == "custom":
             self.mapping = mapping
         else:
             num_before_filter = len(mapping)

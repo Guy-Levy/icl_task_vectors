@@ -137,6 +137,211 @@ ALL_TASKS = {
     #     "task_type": "sentiment",
     #     "task_kwargs": {"allow_prefix": True},
     # },
+    # Custom
+    "next_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "next_letter"},
+    },
+    "prev_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "prev_letter"},
+    },
+    "to_uppercase": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "to_uppercase"},
+    },
+    "count_char_in_string": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "count_char_in_string"},
+    },
+    "abs_round": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "abs_round"},
+    },
+    "array_average": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_average"},
+    },
+    "array_min": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_min"},
+    },
+    "array_sum": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_sum"},
+    },
+    "division": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "division"},
+    },
+    "round": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "round"},
+    },
+    "string_to_mask_by_char": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "string_to_mask_by_char"},
+    },
+    "string_to_mask_by_char2": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "string_to_mask_by_char2"},
+    },
+    "absolute": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "absolute"},
+    },
+    "array_length": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_length"},
+    },
+    "array_max": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_max"},
+    },
+    "subtraction": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "subtraction"},
+    },
+    "array_max_diff": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "array_max_diff"},
+    },
+    "first_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "first_letter"},
+    },
+    "first_letter_to_upper": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "first_letter_to_upper"},
+    },
+    "next_of_first_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "next_of_first_letter"},
+    },
+    "prev_of_first_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "prev_of_first_letter"},
+    },
+    "city_PM": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "city_PM", "allow_prefix": True},
+    },
+    "city_country": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "city_country", "allow_prefix": True},
+    },
+    "country_PM": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "country_PM", "allow_prefix": True},
+    },
+    "country_capital": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "country_capital", "allow_prefix": True},
+    },
+    "location_country": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "location_country", "allow_prefix": True},
+    },
+    "city_PMbirthYear": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "city_PMbirthYear"},
+    },
+    "city_mayor": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "city_mayor", "allow_prefix": True},
+    },
+    "country_capitalMayor": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "country_capitalMayor", "allow_prefix": True},
+    },
+    "location_capitalMayor": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "location_capitalMayor", "allow_prefix": True},
+    },
+    "person_birthYear": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "person_birthYear"},
+    },
+    "adjective_superlative": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "adjective_superlative"},
+    },
+    "antonym_superlative": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "antonym_superlative"},
+    },
+    "antonyms": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "antonyms"},
+    },
+    "past_oppositeGerund": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "past_oppositeGerund"},
+    },
+    "past_present": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "past_present"},
+    },
+    "present_gerund": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "present_gerund"},
+    },
+    "antoym_to_reversed": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "antoym_to_reversed"},
+    },
+    "en_es": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "en_es"},
+    },
+    "count_char_in_string": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "count_char_in_string"},
+    },
+    "division_new_format": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "division_new_format"},
+    },
+    "reversed_words": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "reversed_words", "allow_prefix": True},
+    },
+    "subtract_new_format": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "subtract_new_format"},
+    },
+    "word_length": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "word_length"},
+    },
+}
+
+COMPLEX_TASKS = {
+    "first_letter_to_upper": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "first_letter_to_upper"},
+        "sub_tasks": ["first_letter", "to_uppercase"],
+    },
+    "next_of_first_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "next_of_first_letter"},
+        "sub_tasks": ["first_letter", "next_letter"],
+    },
+    "prev_of_first_letter": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "prev_of_first_letter"},
+        "sub_tasks": ["first_letter", "prev_letter"],
+    },
+    "count_char_in_string": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "count_char_in_string"},
+        "sub_tasks": ["string_to_mask_by_char", "array_sum"],
+    },
+    "abs_round": {
+        "task_type": "mapping",
+        "task_kwargs": {"mapping_type": "custom", "mapping_name": "abs_round"},
+        "sub_tasks": ["round", "absolute"],
+    },
 }
 
 
@@ -153,4 +358,8 @@ def get_task_by_name(tokenizer: PreTrainedTokenizer, task_name: str) -> Task:
 
 def get_all_tasks(tokenizer: PreTrainedTokenizer) -> Dict[str, Task]:
     tasks = {task_name: get_task_by_name(tokenizer, task_name) for task_name in ALL_TASKS}
+    return tasks
+
+def get_all_complex_tasks(tokenizer: PreTrainedTokenizer) -> Dict[str, Task]:
+    tasks = {task_name: get_task_by_name(tokenizer, task_name) for task_name in COMPLEX_TASKS}
     return tasks
