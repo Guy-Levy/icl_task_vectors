@@ -17,13 +17,13 @@ from core.data.task_helpers import get_task_by_name
 from core.models.llm_loading import load_model_and_tokenizer
 from core.task_vectors import get_task_hiddens, task_vector_accuracy_by_layer
 from core.utils.misc import limit_gpus, seed_everything
-from scripts.experiments.main import TASKS_TO_EVALUATE
+from scripts.figures.helpers import TASKS_TO_PLOT
 
 
 def create_task_vectors(model, tokenizer):
     task_vectors = {}
 
-    for task_name in tqdm(TASKS_TO_EVALUATE):
+    for task_name in tqdm(TASKS_TO_PLOT):
         num_examples = 4
 
         task = get_task_by_name(tokenizer, task_name)
@@ -52,9 +52,9 @@ def create_tsne_plot(task_vectors):
     task_vectors_2d = dim_reduction.fit_transform(all_task_vectors)
 
     color_by_task_type = False
-    show_names = False
+    show_names = True
 
-    plt.figure(figsize=(5, 5))
+    plt.figure(figsize=(7, 7))
 
     if color_by_task_type:
         # # color based on the first part of the task name - the task type (split on "_")
@@ -77,17 +77,14 @@ def create_tsne_plot(task_vectors):
             ys = task_vectors_2d[i * 50 : (i + 1) * 50, 1]
             x = np.mean(xs)
             y = np.min(ys) - 0.1
-            plt.text(x, y, task_name, fontsize=12, ha="center", va="top")
+            plt.text(x, y, task_name, fontsize=6, ha="center", va="top")
 
     # save the plot
     name_suffix = "task_type" if color_by_task_type else "task_name"
     save_path = os.path.join(FIGURES_DIR, f"task_vectors_tsne_{name_suffix}.png")
     plt.savefig(save_path, bbox_inches="tight", dpi=300)
 
-
-def create_histograms_plot(task_vectors):
-    # calculate task vectors distances - within task and between tasks
-
+def get_task_vector_distances(task_vectors):
     within_task_distances = torch.stack(
         [
             torch.tensor(cdist(task_vectors[task_name], task_vectors[task_name], metric="cosine").flatten())
@@ -110,36 +107,60 @@ def create_histograms_plot(task_vectors):
         ]
     )
 
-    # create subplots for each task (make it fit in a A4 page)
-    fig, axs = plt.subplots(5, 4, figsize=(12, 16))
-    plt.title("Task Vector Distances")
-    axs = axs.flatten()
-    for i, task_name in enumerate(task_vectors.keys()):
-        axs[i].hist(within_task_distances[i], bins=50, alpha=0.5, label="Within task", density=True)
-        axs[i].hist(between_task_distances[i], bins=50, alpha=0.5, label="Other tasks", density=True)
-        axs[i].set_title(task_name)
-        axs[i].legend()
+    return within_task_distances, between_task_distances
 
-    # x label (only for the bottom row)
-    for ax in axs[-4:]:
-        ax.set_xlabel("Cosine Distance")
+def create_histograms_plot(task_vectors):
+    # calculate task vectors distances - within task and between tasks
+    within_task_distances, between_task_distances = get_task_vector_distances(task_vectors)
 
-    # y label (only for the left column)
-    for ax in axs[::4]:
-        ax.set_ylabel("Density")
+    # Create batches of 20 tasks
+    task_names = list(task_vectors.keys())
+    num_batches = (len(task_names) + 19) // 20  # Round up division
 
-    # delete the empty plots
-    for ax in axs[len(task_vectors) :]:
-        ax.remove()
+    for batch in range(num_batches):
+        start_idx = batch * 20
+        end_idx = min((batch + 1) * 20, len(task_names))
+        batch_task_names = task_names[start_idx:end_idx]
 
-    # save the figure, high dpi, without large margins
-    save_path = os.path.join(FIGURES_DIR, f"task_vectors_histograms.png")
-    plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        # create subplots for each batch of tasks
+        fig, axs = plt.subplots(5, 4, figsize=(12, 16))
+        fig.suptitle(f"Task Vector Distances (Batch {batch + 1})", fontsize=16)
+        axs = axs.flatten()
+
+        for i, task_name in enumerate(batch_task_names):
+            task_idx = task_names.index(task_name)
+            axs[i].hist(within_task_distances[task_idx], bins=50, alpha=0.5, label="Within task", density=True)
+            axs[i].hist(between_task_distances[task_idx], bins=50, alpha=0.5, label="Other tasks", density=True)
+            axs[i].set_title(task_name, fontsize=10)
+            axs[i].legend(fontsize=8)
+            axs[i].tick_params(axis='both', which='major', labelsize=6)
+
+        # x label (only for the bottom row)
+        for ax in axs[-4:]:
+            ax.set_xlabel("Cosine Distance", fontsize=10)
+
+        # y label (only for the left column)
+        for ax in axs[::4]:
+            ax.set_ylabel("Density", fontsize=10)
+
+        # delete the empty plots
+        for ax in axs[len(batch_task_names):]:
+            ax.remove()
+
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to accommodate suptitle
+
+        # save the figure, high dpi, without large margins
+        save_path = os.path.join(FIGURES_DIR, f"task_vectors_histograms_batch_{batch + 1}.png")
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)  # Close the figure to free up memory
 
 
 def print_histograms_stats(task_vectors):
+    # calculate task vectors distances - within task and between tasks
+    within_task_distances, between_task_distances = get_task_vector_distances(task_vectors)
+
     table_data = {
-        "Task": TASKS_TO_EVALUATE,
+        "Task": TASKS_TO_PLOT,
         "in_task_mean": within_task_distances.mean(axis=1),
         "in_task_std": within_task_distances.std(axis=1),
         "other_tasks_mean": between_task_distances.mean(axis=1),
@@ -176,7 +197,7 @@ def main():
     seed_everything(41)
     limit_gpus(range(0, 8))
 
-    model_type, model_variant = "llama", "7B"
+    model_type, model_variant = "pythia", "12B"
     model, tokenizer = load_model_and_tokenizer(model_type, model_variant)
 
     task_vectors = create_task_vectors(model, tokenizer)
