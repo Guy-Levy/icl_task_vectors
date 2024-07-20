@@ -20,6 +20,9 @@ from core.models.utils.inference import (
 from core.models.utils.llm_layers import get_layers
 from core.utils.nested import nested_apply
 
+import numpy as np
+from scipy.stats import pearsonr
+from typing import List, Tuple
 
 def run_icl(
     model: PreTrainedModel,
@@ -27,11 +30,23 @@ def run_icl(
     task: Task,
     test_datasets: List[FewShotDataset],
     include_train: bool = True,
+    print_samples: bool = False,
 ) -> List[str]:
     format_dataset_kwargs = {"include_train": include_train}
     inputs = tokenize_datasets(tokenizer, test_datasets, format_dataset_kwargs=format_dataset_kwargs)
-    new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": 1})
+    new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": 3})
+    # new_ids = batch_generate(model, tokenizer, inputs=inputs, generate_kwargs={"max_new_tokens": 5}) # TODO Guy: play with this
     predictions = decode_predictions(new_ids, tokenizer)
+
+    if print_samples:
+        num_samples = min(2, len(test_datasets))
+        for i in range(num_samples):
+            print(f"Sample {i + 1}:")
+            print("Prompt:")
+            print(tokenizer.decode(inputs['input_ids'][i]))
+            print("Generated answer:")
+            print(predictions[i])
+            print()
 
     return predictions
 
@@ -319,3 +334,73 @@ def continue_generation(
     answers = decode_predictions(new_ids, tokenizer)
 
     return answers
+
+def calculate_mean_tv(task_vectors: torch.Tensor) -> torch.Tensor:
+    return torch.mean(task_vectors, dim=0)
+
+def calculate_tv_distances(task_vectors: torch.Tensor, mean_tv: torch.Tensor) -> torch.Tensor:
+    return torch.norm(task_vectors - mean_tv.unsqueeze(0), dim=1)
+
+def correlate_distances_with_accuracies(distances: torch.Tensor, accuracies: List[float]) -> Tuple[float, float]:
+    distances_np = distances.cpu().numpy()
+    accuracies_np = np.array(accuracies)
+    return pearsonr(distances_np, accuracies_np)
+
+def find_best_intermediate_layer(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    dev_datasets: List[FewShotDataset],
+    layers_to_test: Optional[Iterable[int]] = None
+) -> int:
+    dev_accuracy_by_layer = task_vector_accuracy_by_layer(
+        model,
+        tokenizer,
+        task,
+        dev_datasets,
+        layers_to_test=layers_to_test,
+    )
+    return int(max(dev_accuracy_by_layer, key=dev_accuracy_by_layer.get))
+
+def get_task_accuracies(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    datasets: List[FewShotDataset],
+    task_vectors: torch.Tensor,
+    intermediate_layer: int
+) -> List[float]:
+    accuracies = []
+    for dataset, tv in zip(datasets, task_vectors):
+        prediction = modulated_generate(
+            model, 
+            tokenizer, 
+            task, 
+            [dataset], 
+            task_hiddens=tv.unsqueeze(0),
+            intermediate_layer=intermediate_layer
+        )
+        accuracies.append(calculate_accuracy_on_datasets(task, prediction, [dataset]))
+    return accuracies
+
+def analyze_tv_distance_accuracy_correlation(
+    model: PreTrainedModel,
+    tokenizer: PreTrainedTokenizer,
+    task: Task,
+    datasets: List[FewShotDataset],
+    dev_datasets: List[FewShotDataset],
+    layers_to_test: Optional[Iterable[int]] = None
+) -> Tuple[float, float, int]:
+    # Find the best intermediate layer
+    best_layer = find_best_intermediate_layer(model, tokenizer, task, dev_datasets, layers_to_test)
+    
+    task_vectors = get_task_hiddens(model, tokenizer, task, datasets)
+
+    relevant_task_vectors = task_vectors[:, best_layer]
+    mean_tv = calculate_mean_tv(relevant_task_vectors)
+    distances = calculate_tv_distances(relevant_task_vectors, mean_tv)
+
+    accuracies = get_task_accuracies(model, tokenizer, task, datasets, task_vectors, best_layer)
+    
+    correlation, p_value = correlate_distances_with_accuracies(distances, accuracies)
+    return correlation, p_value, best_layer

@@ -6,15 +6,18 @@ from core.data.datasets.few_shot_dataset import FewShotDataset
 from core.data.tasks.task import Task
 
 
-def calculate_accuracy(task: Task, predictions: List[str], expected_outputs: List[str]) -> List[bool]:
+def calculate_accuracy(task: Task, predictions: List[str], expected_outputs: List[str], return_mask: bool = False) -> List[bool]:
     correct = _evaluate_predictions(task, predictions, expected_outputs)
     accuracy = correct.mean()
-    return accuracy
+    if return_mask:
+        return accuracy, correct
+    else:
+        return accuracy
 
 
-def calculate_accuracy_on_datasets(task: Task, predictions: List[str], datasets: List[FewShotDataset]) -> List[bool]:
+def calculate_accuracy_on_datasets(task: Task, predictions: List[str], datasets: List[FewShotDataset], return_mask: bool = False) -> List[bool]:
     expected_outputs = [dataset.test_output for dataset in datasets]
-    return calculate_accuracy(task, predictions, expected_outputs)
+    return calculate_accuracy(task, predictions, expected_outputs, return_mask)
 
 
 def print_evaluation_summary(task: Task, predictions: List[str], datasets: List[FewShotDataset]) -> None:
